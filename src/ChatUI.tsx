@@ -40,6 +40,7 @@ export interface ChatUIProps {
   description?: string;
   footerText?: React.ReactNode;
   inputPlaceholder?: string;
+  theme?: "light" | "dark";
 }
 
 export function ChatUI({
@@ -55,6 +56,7 @@ export function ChatUI({
     </>
   ),
   inputPlaceholder = "Message",
+  theme,
 }: ChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -231,7 +233,7 @@ export function ChatUI({
   };
 
   return (
-    <div id="chat-ui-scope">
+    <div id="chat-ui-scope" className={cn(theme, "font-sans")}>
     <>
       {showNotification && !isChatOpen && (
         <div className="fixed bottom-24 right-5 z-[9998] animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -243,7 +245,7 @@ export function ChatUI({
               duration={3000}
               containerClassName="w-72 sm:w-80 h-auto overflow-hidden rounded-xl bg-transparent"
               borderClassName="bg-[radial-gradient(#0ea5e9_40%,transparent_60%)]"
-              className="bg-background dark:bg-zinc-900 border dark:border-zinc-800 p-5 items-start justify-start flex-col w-full h-full text-foreground shadow-lg"
+              className="bg-background border p-5 items-start justify-start flex-col w-full h-full text-foreground shadow-lg"
             >
               <Button
                 variant="ghost"
@@ -256,7 +258,7 @@ export function ChatUI({
               </Button>
 
               <div className="flex items-start gap-3 mb-4 w-full">
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-background dark:ring-zinc-800">
+                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-background">
                   <img
                     src={logoSrc}
                     alt="AI"
@@ -295,8 +297,7 @@ export function ChatUI({
               </div>
             </MovingBorderButton>
 
-            {/* Triangle Tail */}
-            <div className="absolute -bottom-2 right-6 w-4 h-4 bg-background dark:bg-zinc-900 border-b border-r dark:border-zinc-800 transform rotate-45 z-0"></div>
+            <div className="absolute -bottom-2 right-6 w-4 h-4 bg-background border-b border-r transform rotate-45 z-0"></div>
           </div>
         </div>
       )}
@@ -381,7 +382,7 @@ export function ChatUI({
                     ) : (
                       <div
                         className={cn(
-                          "prose dark:prose-invert text-sm break-words leading-normal max-w-none",
+                          "prose text-sm break-words leading-normal max-w-none",
                           "prose-p:m-0 prose-ul:m-0 prose-ol:m-0 prose-li:m-0",
                         )}
                       >
@@ -414,7 +415,7 @@ export function ChatUI({
                                 href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors break-all"
+                                className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors break-all"
                                 {...props}
                               >
                                 {children}
