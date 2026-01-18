@@ -1,0 +1,497 @@
+"use client";
+
+import { useState, FormEvent, useEffect } from "react";
+import { Send, Sparkles, Loader2, User, RefreshCcw, X } from "lucide-react";
+import { Button } from "./components/ui/button";
+import {
+  ChatBubble,
+  ChatBubbleAvatar,
+  ChatBubbleMessage,
+} from "./components/ui/chat-bubble";
+import { ChatInput } from "./components/ui/chat-input";
+import {
+  ExpandableChat,
+  ExpandableChatHeader,
+  ExpandableChatBody,
+  ExpandableChatFooter,
+} from "./components/ui/expandable-chat";
+import { ChatMessageList } from "./components/ui/chat-message-list";
+
+import { ShiningText } from "./components/ui/shining-text";
+import { Button as MovingBorderButton } from "./components/ui/moving-border";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { cn } from "./lib/utils";
+
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
+import { DEFAULT_LOGO, DEFAULT_SOUND } from "./assets";
+
+export interface ChatUIProps {
+  endpoint: string;
+  logoSrc?: string;
+  soundSrc?: string;
+  title?: string;
+  welcomeMessage?: string;
+  description?: string;
+  footerText?: React.ReactNode;
+  inputPlaceholder?: string;
+}
+
+export function ChatUI({
+  endpoint,
+  logoSrc = DEFAULT_LOGO,
+  soundSrc = DEFAULT_SOUND,
+  title = "AI Assistant",
+  welcomeMessage = "Welcome to AI Assistant! 👋",
+  description = "I'm here to help you navigate our services. Feel free to ask me anything!",
+  footerText = (
+    <>
+      Developed by <a href="https://www.dmanikanta.me" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary transition-colors">Manikanta Darapureddy</a> 💛
+    </>
+  ),
+  inputPlaceholder = "Message",
+}: ChatUIProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const savedMessages = localStorage.getItem("chat-history");
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        console.error("Failed to parse chat history", e);
+      }
+    }
+    setIsInitialized(true);
+  }, []);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isDismissed && !isChatOpen) {
+        setShowNotification(true);
+        const audio = new Audio(soundSrc);
+        audio.play().catch((error) => {
+          if (error.name !== "NotAllowedError") {
+            console.error("Error playing notification sound:", error);
+          }
+        });
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [isChatOpen, isDismissed, soundSrc]);
+
+  useEffect(() => {
+    if (isChatOpen) {
+      setShowNotification(false);
+      setIsDismissed(true);
+    }
+  }, [isChatOpen]);
+
+  const handleDismissNotification = () => {
+    setShowNotification(false);
+    setIsDismissed(true);
+  };
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem("chat-history", JSON.stringify(messages));
+    }
+  }, [messages, isInitialized]);
+
+  const handleReset = () => {
+    setMessages([]);
+    localStorage.removeItem("chat-history");
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userQuestion = input.trim();
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: userQuestion,
+    };
+
+    // Prepare history
+    const history = messages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+
+    if (!endpoint) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content:
+          "Contact admin for api endpoint or check you have added correct endpoint or not contact developer at darapureddymanikanta8@gmail.com",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: userQuestion,
+          history: history,
+          stream: true,
+        }),
+      });
+
+      if (!response.body) {
+        throw new Error("ReadableStream not supported.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = "";
+      let isFirstChunk = true;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        aiResponse += chunk;
+
+        if (isFirstChunk) {
+          isFirstChunk = false;
+          setIsLoading(false); // Hide "Thinking..." bubble
+
+          // Add initial bot message
+          const botMessageId = (Date.now() + 1).toString();
+          const botMessage: Message = {
+            id: botMessageId,
+            role: "assistant",
+            content: aiResponse,
+          };
+          setMessages((prev) => [...prev, botMessage]);
+        } else {
+          // Update existing bot message
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastMsgIndex = updated.length - 1;
+            if (
+              lastMsgIndex >= 0 &&
+              updated[lastMsgIndex].role === "assistant"
+            ) {
+              updated[lastMsgIndex] = {
+                ...updated[lastMsgIndex],
+                content: aiResponse,
+              };
+            }
+            return updated;
+          });
+        }
+      }
+
+      // Play notification sound
+      const audio = new Audio(soundSrc);
+      audio
+        .play()
+        .catch((e) => console.error("Error playing notification sound:", e));
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 2).toString(),
+          role: "assistant",
+          content:
+            "I apologize, but I encountered an error. Please try again later.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div id="chat-ui-scope">
+    <>
+      {showNotification && !isChatOpen && (
+        <div className="fixed bottom-24 right-5 z-[9998] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          {/* Wrapper to position tail relative to the button */}
+          <div className="relative">
+            <MovingBorderButton
+              as="div"
+              borderRadius="0.75rem"
+              duration={3000}
+              containerClassName="w-72 sm:w-80 h-auto overflow-hidden rounded-xl bg-transparent"
+              borderClassName="bg-[radial-gradient(#0ea5e9_40%,transparent_60%)]"
+              className="bg-background dark:bg-zinc-900 border dark:border-zinc-800 p-5 items-start justify-start flex-col w-full h-full text-foreground shadow-lg"
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-3 right-3 h-6 w-6 text-muted-foreground hover:text-foreground z-10"
+                onClick={handleDismissNotification}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+
+              <div className="flex items-start gap-3 mb-4 w-full">
+                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-background dark:ring-zinc-800">
+                  <img
+                    src={logoSrc}
+                    alt="AI"
+                    className="object-cover h-full w-full"
+                  />
+                </div>
+                <div className="flex flex-col pt-0.5">
+                  <h3 className="font-bold text-sm leading-tight text-foreground">
+                    {title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Online
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full text-left">
+                <p className="text-sm font-medium text-foreground leading-snug">
+                  {welcomeMessage}
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                  {description}
+                </p>
+                <Button
+                  className="w-full mt-4 h-10 rounded-lg bg-[#535bf2] hover:bg-[#464ec9] text-white shadow-sm transition-all duration-200 font-medium"
+                  onClick={() => setIsChatOpen(true)}
+                >
+                  Start chatting
+                </Button>
+              </div>
+            </MovingBorderButton>
+
+            {/* Triangle Tail */}
+            <div className="absolute -bottom-2 right-6 w-4 h-4 bg-background dark:bg-zinc-900 border-b border-r dark:border-zinc-800 transform rotate-45 z-0"></div>
+          </div>
+        </div>
+      )}
+
+      <ExpandableChat
+        size="lg"
+        position="bottom-right"
+        isOpen={isChatOpen}
+        onOpenChange={setIsChatOpen}
+        icon={
+          <div className="relative h-full w-full overflow-hidden rounded-full">
+            <img
+              src={logoSrc}
+              alt="AI"
+              className="object-cover h-full w-full"
+            />
+          </div>
+        }
+      >
+        <ExpandableChatHeader className="bg-muted/40 flex-col text-center justify-center border-b p-4 relative">
+          <h1 className="text-xl font-semibold flex items-center justify-center gap-2">
+            {title}
+            <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+          </h1>
+          <p className="text-sm text-muted-foreground flex items-center justify-center gap-1.5 pt-1">
+            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+            Online and ready to help
+          </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-3 left-3 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 sm:top-5 sm:right-5 sm:left-auto"
+            onClick={handleReset}
+            title="Reset Chat"
+          >
+            <RefreshCcw className="h-4 w-4" />
+          </Button>
+        </ExpandableChatHeader>
+
+        <ExpandableChatBody className="bg-background/50">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-in fade-in duration-500">
+              <div className="bg-background rounded-full p-4 mb-6 shadow-md ring-1 ring-border/50">
+                <div className="relative w-16 h-16 overflow-hidden rounded-full">
+                  <img
+                    src={logoSrc}
+                    alt="AI Logo"
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold mb-2 tracking-tight">
+                {title}
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Welcome to {title} 💛
+              </p>
+            </div>
+          ) : (
+            <ChatMessageList>
+              {messages.map((message) => (
+                <ChatBubble
+                  key={message.id}
+                  variant={message.role === "user" ? "sent" : "received"}
+                >
+                  <ChatBubbleAvatar
+                    className="h-8 w-8 shrink-0"
+                    src={message.role === "user" ? undefined : logoSrc}
+                    fallback={
+                      message.role === "user" ? (
+                        <User className="h-4 w-4" />
+                      ) : (
+                        "AI"
+                      )
+                    }
+                  />
+                  <ChatBubbleMessage
+                    variant={message.role === "user" ? "sent" : "received"}
+                  >
+                    {message.role === "user" ? (
+                      message.content
+                    ) : (
+                      <div
+                        className={cn(
+                          "prose dark:prose-invert text-sm break-words leading-normal max-w-none",
+                          "prose-p:m-0 prose-ul:m-0 prose-ol:m-0 prose-li:m-0",
+                        )}
+                      >
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            ul: ({ node, ...props }: any) => (
+                              <ul className="list-disc pl-4 my-1" {...props} />
+                            ),
+                            ol: ({ node, ...props }: any) => (
+                              <ol
+                                className="list-decimal pl-4 my-1"
+                                {...props}
+                              />
+                            ),
+                            li: ({ node, ...props }: any) => (
+                              <li className="my-0.5 pl-1" {...props} />
+                            ),
+                            p: ({ node, ...props }: any) => (
+                              <p className="mb-2 last:mb-0" {...props} />
+                            ),
+                            strong: ({ node, ...props }: any) => (
+                              <span
+                                className="font-bold text-foreground"
+                                {...props}
+                              />
+                            ),
+                            a: ({ node, href, children, ...props }: any) => (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors break-all"
+                                {...props}
+                              >
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </ChatBubbleMessage>
+                </ChatBubble>
+              ))}
+
+              {isLoading && (
+                <ChatBubble variant="received">
+                  <ChatBubbleAvatar
+                    className="h-8 w-8 shrink-0"
+                    src={logoSrc}
+                    fallback="AI"
+                  />
+                  <ChatBubbleMessage className="bg-transparent p-0 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-foreground/50" />
+                    <ShiningText text="AI Assistant thinking..." />
+                  </ChatBubbleMessage>
+                </ChatBubble>
+              )}
+            </ChatMessageList>
+          )}
+        </ExpandableChatBody>
+
+        <ExpandableChatFooter className="bg-muted/40 p-3">
+          <form
+            onSubmit={handleSubmit}
+            className="relative rounded-3xl border bg-background focus-within:ring-1 focus-within:ring-ring p-1 shadow-sm"
+          >
+            <ChatInput
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={inputPlaceholder}
+              rows={1}
+              className="min-h-0 h-auto max-h-32 resize-none rounded-2xl bg-background border-0 px-3 py-2.5 shadow-none focus-visible:ring-0 text-base sm:text-sm"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e as unknown as FormEvent);
+                }
+              }}
+            />
+            <div className="flex items-center justify-between px-2 pb-1">
+              <div className="flex items-center gap-2">
+                {/* Tools or other actions can go here */}
+              </div>
+              <Button
+                type="submit"
+                size="icon"
+                className="h-8 w-8 rounded-full transition-all duration-200"
+                disabled={!input.trim() || isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                <span className="sr-only">Send</span>
+              </Button>
+            </div>
+          </form>
+          <div className="mt-2 text-center flex flex-col items-center justify-center gap-0.5">
+            <span className="text-[10px] text-muted-foreground/60">
+              {footerText}
+            </span>
+          </div>
+        </ExpandableChatFooter>
+      </ExpandableChat>
+    </>
+    </div>
+  );
+}
