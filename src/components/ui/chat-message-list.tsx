@@ -8,11 +8,10 @@ interface ChatMessageListProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
-  ({ className, children, smooth = false, ...props }, _ref) => {
+  ({ className, children, smooth = true, ...props }, _ref) => {
     const {
       scrollRef,
       isAtBottom,
-      autoScrollEnabled,
       scrollToBottom,
       disableAutoScroll,
     } = useAutoScroll({
@@ -27,6 +26,7 @@ const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
           ref={scrollRef}
           onWheel={disableAutoScroll}
           onTouchMove={disableAutoScroll}
+          style={{ scrollBehavior: "smooth" }}
           {...props}
         >
           <div className="flex flex-col gap-6">{children}</div>

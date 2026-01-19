@@ -1,5 +1,5 @@
 module.exports = {
-  darkMode: ["class"],
+  darkMode: false,
   // Disable preflight to avoid resetting host application styles
   corePlugins: {
     preflight: false,
@@ -21,38 +21,38 @@ module.exports = {
     },
     extend: {
       colors: {
-        border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        border: "hsl(var(--chat-border) / <alpha-value>)",
+        input: "hsl(var(--chat-input) / <alpha-value>)",
+        ring: "hsl(var(--chat-ring) / <alpha-value>)",
+        background: "hsl(var(--chat-background) / <alpha-value>)",
+        foreground: "hsl(var(--chat-foreground) / <alpha-value>)",
         primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
+          DEFAULT: "hsl(var(--chat-primary) / <alpha-value>)",
+          foreground: "hsl(var(--chat-primary-foreground) / <alpha-value>)",
         },
         secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
+          DEFAULT: "hsl(var(--chat-secondary) / <alpha-value>)",
+          foreground: "hsl(var(--chat-secondary-foreground) / <alpha-value>)",
         },
         destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
+          DEFAULT: "hsl(var(--chat-destructive) / <alpha-value>)",
+          foreground: "hsl(var(--chat-destructive-foreground) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
+          DEFAULT: "hsl(var(--chat-muted) / <alpha-value>)",
+          foreground: "hsl(var(--chat-muted-foreground) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
+          DEFAULT: "hsl(var(--chat-accent) / <alpha-value>)",
+          foreground: "hsl(var(--chat-accent-foreground) / <alpha-value>)",
         },
         popover: {
-          DEFAULT: "var(--popover)",
-          foreground: "var(--popover-foreground)",
+          DEFAULT: "hsl(var(--chat-popover) / <alpha-value>)",
+          foreground: "hsl(var(--chat-popover-foreground) / <alpha-value>)",
         },
         card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
+          DEFAULT: "hsl(var(--chat-card) / <alpha-value>)",
+          foreground: "hsl(var(--chat-card-foreground) / <alpha-value>)",
         },
       },
       borderRadius: {

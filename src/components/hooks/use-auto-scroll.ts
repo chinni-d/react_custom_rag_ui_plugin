@@ -13,7 +13,7 @@ interface UseAutoScrollOptions {
 }
 
 export function useAutoScroll(options: UseAutoScrollOptions = {}) {
-  const { offset = 20, smooth = false, content } = options;
+  const { offset = 20, smooth = true, content } = options;
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastContentHeight = useRef(0);
   const userHasScrolled = useRef(false);
@@ -46,7 +46,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
       } else {
         scrollRef.current.scrollTo({
           top: targetScrollTop,
-          behavior: smooth ? "smooth" : "auto",
+          behavior: "smooth",
         });
       }
 

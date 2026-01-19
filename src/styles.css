@@ -11,32 +11,45 @@
     -moz-tab-size: 4;
     tab-size: 4;
     
+    /* Force light color scheme */
+    color-scheme: light;
+    
     /* Variables - Light Theme Defaults */
-    --background: white;
-    --foreground: hsl(222.2 84% 4.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(222.2 84% 4.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(222.2 84% 4.9%);
-    --primary: hsl(221.2 83.2% 53.3%);
-    --primary-foreground: hsl(210 40% 98%);
-    --secondary: hsl(210 40% 96.1%);
-    --secondary-foreground: hsl(222.2 47.4% 11.2%);
-    --muted: hsl(210 40% 96.1%);
-    --muted-foreground: hsl(215.4 16.3% 46.9%);
-    --accent: hsl(210 40% 96.1%);
-    --accent-foreground: hsl(222.2 47.4% 11.2%);
-    --destructive: hsl(0 84.2% 60.2%);
-    --destructive-foreground: hsl(210 40% 98%);
-    --border: hsl(214.3 31.8% 91.4%);
-    --input: hsl(214.3 31.8% 91.4%);
-    --ring: hsl(222.2 84% 4.9%);
+    --chat-background: 0 0% 100%;
+    --chat-foreground: 222.2 84% 4.9%;
+    --chat-card: 0 0% 100%;
+    --chat-card-foreground: 222.2 84% 4.9%;
+    --chat-popover: 0 0% 100%;
+    --chat-popover-foreground: 222.2 84% 4.9%;
+    --chat-primary: 221.2 83.2% 53.3%;
+    --chat-primary-foreground: 210 40% 98%;
+    --chat-secondary: 210 40% 96.1%;
+    --chat-secondary-foreground: 222.2 47.4% 11.2%;
+    --chat-muted: 210 40% 96.1%;
+    --chat-muted-foreground: 215.4 16.3% 46.9%;
+    --chat-accent: 210 40% 96.1%;
+    --chat-accent-foreground: 222.2 47.4% 11.2%;
+    --chat-destructive: 0 84.2% 60.2%;
+    --chat-destructive-foreground: 210 40% 98%;
+    --chat-border: 214.3 31.8% 91.4%;
+    --chat-input: 214.3 31.8% 91.4%;
+    --chat-ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
     --radix-accordion-content-height: 0;
     
     /* Shining Text Defaults (mapped to theme) */
-    --shining-base: var(--muted-foreground);
-    --shining-highlight: var(--foreground);
+    --shining-base: hsl(var(--chat-muted-foreground));
+    --shining-highlight: hsl(var(--chat-foreground));
+  }
+  
+  /* Reset child elements to inherit color to prevent host overrides */
+  #chat-ui-scope :where(h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select) {
+      color: inherit;
+  }
+  
+  /* Ensure the root element uses the correct namespaced color */
+  #chat-ui-scope {
+    color: hsl(var(--chat-foreground)) !important;
   }
 
 
@@ -98,9 +111,31 @@
       }
   }
 
-  @keyframes slide {
+@keyframes slide {
       to {
           transform: translate(calc(100cqw - 100%), 0);
       }
   }
 }
+
+/* Custom Scrollbar for Desktop */
+@media (min-width: 769px) {
+  #chat-ui-scope ::-webkit-scrollbar {
+    width: 8px;
+    height: 6px;
+  }
+  
+  #chat-ui-scope ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #chat-ui-scope ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+    border: 1px solid transparent;
+  }
+
+  #chat-ui-scope ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+

@@ -331,7 +331,6 @@ export function ChatUI({
             size="icon"
             className="absolute top-3 left-3 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 sm:top-5 sm:right-5 sm:left-auto"
             onClick={handleReset}
-            title="Reset Chat"
           >
             <RefreshCcw className="h-4 w-4" />
           </Button>
