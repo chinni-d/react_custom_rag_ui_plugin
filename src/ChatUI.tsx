@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from "react";
-import { Send, Sparkles, Loader2, User, RefreshCcw, X } from "lucide-react";
+import { Send, Sparkles, Loader2, User, RefreshCcw, X, Copy, Check } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   ChatBubble,
   ChatBubbleAvatar,
   ChatBubbleMessage,
+
 } from "./components/ui/chat-bubble";
+import { Tooltip } from "./components/ui/tooltip";
 import { ChatInput } from "./components/ui/chat-input";
 import {
   ExpandableChat,
@@ -27,6 +29,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  timestamp?: string;
 }
 
 import { DEFAULT_LOGO, DEFAULT_SOUND } from "./assets";
@@ -40,7 +43,6 @@ export interface ChatUIProps {
   description?: string;
   footerText?: React.ReactNode;
   inputPlaceholder?: string;
-  theme?: "light" | "dark";
 }
 
 export function ChatUI({
@@ -56,12 +58,26 @@ export function ChatUI({
     </>
   ),
   inputPlaceholder = "Message",
-  theme,
 }: ChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+
+  const formatTime = (timestamp?: string) => {
+    if (!timestamp) return "";
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleCopy = (content: string, id: string) => {
+    navigator.clipboard.writeText(content);
+    setCopiedMessageId(id);
+    setTimeout(() => setCopiedMessageId(null), 2000);
+  };
 
   useEffect(() => {
     const savedMessages = localStorage.getItem("chat-history");
@@ -127,6 +143,7 @@ export function ChatUI({
       id: Date.now().toString(),
       role: "user",
       content: userQuestion,
+      timestamp: new Date().toISOString(),
     };
 
     // Prepare history
@@ -144,6 +161,7 @@ export function ChatUI({
         role: "assistant",
         content:
           "Contact admin for api endpoint or check you have added correct endpoint or not contact developer at darapureddymanikanta8@gmail.com",
+        timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
       return;
@@ -190,6 +208,7 @@ export function ChatUI({
             id: botMessageId,
             role: "assistant",
             content: aiResponse,
+            timestamp: new Date().toISOString(),
           };
           setMessages((prev) => [...prev, botMessage]);
         } else {
@@ -225,6 +244,7 @@ export function ChatUI({
           role: "assistant",
           content:
             "I apologize, but I encountered an error. Please try again later.",
+          timestamp: new Date().toISOString(),
         },
       ]);
     } finally {
@@ -233,8 +253,7 @@ export function ChatUI({
   };
 
   return (
-    <div id="chat-ui-scope" className={cn(theme, "font-sans")}>
-    <>
+    <div id="chat-ui-scope" className="font-sans">
       {showNotification && !isChatOpen && (
         <div className="fixed bottom-24 right-5 z-[9998] animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* Wrapper to position tail relative to the button */}
@@ -326,14 +345,19 @@ export function ChatUI({
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
             Online and ready to help
           </p>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-3 left-3 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 sm:top-5 sm:right-5 sm:left-auto"
-            onClick={handleReset}
+          <Tooltip 
+            text="Reset Chat" 
+            className="absolute top-3 left-3 sm:top-5 sm:right-5 sm:left-auto"
           >
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              onClick={handleReset}
+            >
+              <RefreshCcw className="h-4 w-4" />
+            </Button>
+          </Tooltip>
         </ExpandableChatHeader>
 
         <ExpandableChatBody className="bg-background/50">
@@ -373,60 +397,91 @@ export function ChatUI({
                       )
                     }
                   />
-                  <ChatBubbleMessage
-                    variant={message.role === "user" ? "sent" : "received"}
-                  >
-                    {message.role === "user" ? (
-                      message.content
-                    ) : (
-                      <div
-                        className={cn(
-                          "prose text-sm break-words leading-normal max-w-none",
-                          "prose-p:m-0 prose-ul:m-0 prose-ol:m-0 prose-li:m-0",
-                        )}
-                      >
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            ul: ({ node, ...props }: any) => (
-                              <ul className="list-disc pl-4 my-1" {...props} />
-                            ),
-                            ol: ({ node, ...props }: any) => (
-                              <ol
-                                className="list-decimal pl-4 my-1"
-                                {...props}
-                              />
-                            ),
-                            li: ({ node, ...props }: any) => (
-                              <li className="my-0.5 pl-1" {...props} />
-                            ),
-                            p: ({ node, ...props }: any) => (
-                              <p className="mb-2 last:mb-0" {...props} />
-                            ),
-                            strong: ({ node, ...props }: any) => (
-                              <span
-                                className="font-bold text-foreground"
-                                {...props}
-                              />
-                            ),
-                            a: ({ node, href, children, ...props }: any) => (
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors break-all"
-                                {...props}
-                              >
-                                {children}
-                              </a>
-                            ),
-                          }}
+                  <div className={cn("flex flex-col max-w-[85%] group", message.role === "user" ? "items-end" : "items-start")}>
+                    <ChatBubbleMessage
+                      variant={message.role === "user" ? "sent" : "received"}
+                      className="relative break-words whitespace-pre-wrap"
+                    >
+                      {message.role === "user" ? (
+                        message.content
+                      ) : (
+                        <div
+                          className={cn(
+                            "prose text-sm break-words leading-normal max-w-none",
+                            "prose-p:m-0 prose-ul:m-0 prose-ol:m-0 prose-li:m-0",
+                          )}
                         >
-                          {message.content}
-                        </ReactMarkdown>
-                      </div>
-                    )}
-                  </ChatBubbleMessage>
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              ul: ({ node, ...props }: any) => (
+                                <ul className="list-disc pl-4 my-1" {...props} />
+                              ),
+                              ol: ({ node, ...props }: any) => (
+                                <ol
+                                  className="list-decimal pl-4 my-1"
+                                  {...props}
+                                />
+                              ),
+                              li: ({ node, ...props }: any) => (
+                                <li className="my-0.5 pl-1" {...props} />
+                              ),
+                              p: ({ node, ...props }: any) => (
+                                <p className="mb-2 last:mb-0" {...props} />
+                              ),
+                              strong: ({ node, ...props }: any) => (
+                                <span
+                                  className="font-bold text-foreground"
+                                  {...props}
+                                />
+                              ),
+                              a: ({ node, href, children, ...props }: any) => (
+                                <a
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors break-all"
+                                  {...props}
+                                >
+                                  {children}
+                                </a>
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
+                    </ChatBubbleMessage>
+
+                    {/* Message Footer: Time + Copy + Status (Outside bubble) */}
+                    <div
+                      className={cn(
+                        "flex items-center gap-1 mt-1 select-none px-1",
+                        message.role === "user" ? "justify-end" : "justify-start"
+                      )}
+                    >
+                       <span className="text-[10px] text-muted-foreground font-medium opacity-50">
+                        {message.timestamp ? formatTime(message.timestamp) : formatTime(new Date().toISOString())}
+                      </span>
+                       {message.role === "user" && (
+                         <span className="flex text-muted-foreground opacity-50">
+                           <Check className="h-3 w-3" />
+                           <Check className="h-3 w-3 -ml-1.5" /> 
+                         </span>
+                      )}
+                      {message.role !== "user" && (
+                        <Button
+                          variant="ghost" 
+                          size="icon"
+                          className="h-4 w-4 ml-1 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          onClick={() => handleCopy(message.content, message.id)}
+                        >
+                           {copiedMessageId === message.id ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </ChatBubble>
               ))}
 
@@ -491,7 +546,6 @@ export function ChatUI({
           </div>
         </ExpandableChatFooter>
       </ExpandableChat>
-    </>
     </div>
   );
 }
