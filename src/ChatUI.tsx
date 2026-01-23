@@ -9,6 +9,7 @@ import {
   ChatBubbleMessage,
 } from "./components/ui/chat-bubble";
 import { ChatInput } from "./components/ui/chat-input";
+import { Tooltip } from "./components/ui/tooltip";
 import {
   ExpandableChat,
   ExpandableChatHeader,
@@ -41,6 +42,7 @@ export interface ChatUIProps {
   description?: string;
   footerText?: React.ReactNode;
   inputPlaceholder?: string;
+  theme?: "light" | "dark";
 }
 
 export function ChatUI({
@@ -56,6 +58,7 @@ export function ChatUI({
     </>
   ),
   inputPlaceholder = "Message",
+  theme = "light",
 }: ChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -237,7 +240,7 @@ export function ChatUI({
   };
 
   return (
-    <div id="chat-ui-scope" className={cn("font-sans")}>
+    <div id="chat-ui-scope" className={cn("font-sans", theme === "dark" && "dark")}>
     <>
       {showNotification && !isChatOpen && (
         <div className="fixed bottom-24 right-5 z-[9998] animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -249,7 +252,7 @@ export function ChatUI({
               duration={3000}
               containerClassName="w-72 sm:w-80 h-auto overflow-hidden rounded-xl bg-transparent"
               borderClassName="bg-[radial-gradient(#0ea5e9_40%,transparent_60%)]"
-              className="bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] border p-5 items-start justify-start flex-col w-full h-full text-foreground shadow-lg"
+              className="bg-background bg-[radial-gradient(hsl(var(--chat-border))_1px,transparent_1px)] [background-size:16px_16px] border p-5 items-start justify-start flex-col w-full h-full text-foreground shadow-lg"
             >
               <Button
                 variant="ghost"
@@ -301,7 +304,7 @@ export function ChatUI({
               </div>
             </MovingBorderButton>
 
-            <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white border-b border-r transform rotate-45 z-0"></div>
+            <div className="absolute -bottom-2 right-6 w-4 h-4 bg-background border-b border-r transform rotate-45 z-0"></div>
           </div>
         </div>
       )}
@@ -330,17 +333,22 @@ export function ChatUI({
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
             Online and ready to help
           </p>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-3 left-3 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 sm:top-5 sm:right-5 sm:left-auto"
-            onClick={handleReset}
+          <Tooltip
+            text="Reset Chat"
+            className="absolute top-3 left-3 sm:top-5 sm:right-5 sm:left-auto"
           >
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              onClick={handleReset}
+            >
+              <RefreshCcw className="h-4 w-4 transition-transform duration-500 group-hover:rotate-180" />
+            </Button>
+          </Tooltip>
         </ExpandableChatHeader>
 
-        <ExpandableChatBody className="bg-white/50 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+        <ExpandableChatBody className="bg-background/50 bg-[radial-gradient(hsl(var(--chat-border))_1px,transparent_1px)] [background-size:16px_16px]">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full p-6 text-center animate-in fade-in duration-500">
               <div className="bg-background rounded-full p-4 mb-6 shadow-md ring-1 ring-border/50">

@@ -62,6 +62,7 @@ The `ChatUI` component provides various props to customize the appearance and be
 | `description` | `string` | ❌ | `"I'm here..."` | A short description text under the welcome message. |
 | `footerText` | `ReactNode` | ❌ | `Default Footer` | Custom text or JSX to display in the footer of the chat window. |
 | `inputPlaceholder` | `string` | ❌ | `"Message"` | Placeholder text for the input text area. |
+| `theme` | `"light" \| "dark"` | ❌ | `"light"` | The color theme of the chat UI. |
 
 ### Example with customizations
 
@@ -73,6 +74,7 @@ The `ChatUI` component provides various props to customize the appearance and be
   description="Ask me anything about our products."
   inputPlaceholder="Type your question..."
   logoSrc="/assets/bot-avatar.png"
+  theme="dark"
 />
 ```
 

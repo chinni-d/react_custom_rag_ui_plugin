@@ -1,5 +1,5 @@
 module.exports = {
-  darkMode: false,
+  darkMode: ["class"],
   // Disable preflight to avoid resetting host application styles
   corePlugins: {
     preflight: false,
