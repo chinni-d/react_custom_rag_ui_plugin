@@ -45,6 +45,28 @@ export interface ChatUIProps {
   theme?: "light" | "dark";
 }
 
+function getMessageDateLabel(date: Date) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+  if (target.getTime() === today.getTime()) {
+    return "Today";
+  }
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (target.getTime() === yesterday.getTime()) {
+    return "Yesterday";
+  }
+  
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function ChatUI({
   endpoint,
   logoSrc = DEFAULT_LOGO,
@@ -326,6 +348,9 @@ export function ChatUI({
       >
         <ExpandableChatHeader className="bg-muted/40 flex-col text-center justify-center border-b p-4 relative">
           <h1 className="text-xl font-semibold flex items-center justify-center gap-2">
+            <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 border border-border/50">
+              <img src={logoSrc} alt="Bot" className="h-full w-full object-cover" />
+            </div>
             {title}
             <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />
           </h1>
@@ -340,10 +365,10 @@ export function ChatUI({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              className="group h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50"
               onClick={handleReset}
             >
-              <RefreshCcw className="h-4 w-4 transition-transform duration-500 group-hover:rotate-180" />
+              <RefreshCcw className="h-4 w-4 group-hover:animate-[spin_1s_linear_1]" />
             </Button>
           </Tooltip>
         </ExpandableChatHeader>
@@ -369,120 +394,138 @@ export function ChatUI({
             </div>
           ) : (
             <ChatMessageList>
-              {messages.map((message) => (
-                <ChatBubble
-                  key={message.id}
-                  variant={message.role === "user" ? "sent" : "received"}
-                >
-                  <ChatBubbleAvatar
-                    className="h-8 w-8 shrink-0"
-                    src={message.role === "user" ? undefined : logoSrc}
-                    fallback={
-                      message.role === "user" ? (
-                        <User className="h-4 w-4" />
-                      ) : (
-                        "AI"
-                      )
-                    }
-                  />
-                  <div className={cn("flex flex-col gap-1 max-w-[85%]", message.role === "user" ? "items-end" : "items-start")}>
-                    <ChatBubbleMessage
+              {messages.map((message, index) => {
+                const messageDate = new Date(message.createdAt || Date.now());
+                const prevMessageDate = index > 0 && messages[index - 1].createdAt 
+                  ? new Date(messages[index - 1].createdAt!) 
+                  : null;
+                const showDateSeparator = !prevMessageDate || messageDate.toDateString() !== prevMessageDate.toDateString();
+
+                return (
+                  <div key={message.id} className="w-full flex flex-col">
+                    {showDateSeparator && (
+                      <div className="flex items-center gap-4 my-4 px-4">
+                        <div className="h-[1px] flex-1 bg-border/30"></div>
+                        <span className="text-xs text-muted-foreground/50 font-medium select-none">
+                          {getMessageDateLabel(messageDate)}
+                        </span>
+                        <div className="h-[1px] flex-1 bg-border/30"></div>
+                      </div>
+                    )}
+                    <ChatBubble
                       variant={message.role === "user" ? "sent" : "received"}
-                      className="max-w-full"
                     >
-                      {message.role === "user" ? (
-                        message.content
-                      ) : (
+                      <ChatBubbleAvatar
+                        className="h-8 w-8 shrink-0"
+                        src={message.role === "user" ? undefined : logoSrc}
+                        fallback={
+                          message.role === "user" ? (
+                            <User className="h-4 w-4" />
+                          ) : (
+                            "AI"
+                          )
+                        }
+                      />
+                      <div className={cn("flex flex-col gap-1 max-w-[85%]", message.role === "user" ? "items-end" : "items-start")}>
+                        <ChatBubbleMessage
+                          variant={message.role === "user" ? "sent" : "received"}
+                          className="max-w-full"
+                        >
+                          {message.role === "user" ? (
+                            message.content
+                          ) : (
+                            <div
+                              className={cn(
+                                "prose text-sm break-words leading-normal max-w-none",
+                                "prose-p:m-0 prose-ul:m-0 prose-ol:m-0 prose-li:m-0",
+                              )}
+                            >
+                              <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                  ul: ({ node, ...props }: any) => (
+                                    <ul className="list-disc pl-4 my-1" {...props} />
+                                  ),
+                                  ol: ({ node, ...props }: any) => (
+                                    <ol
+                                      className="list-decimal pl-4 my-1"
+                                      {...props}
+                                    />
+                                  ),
+                                  li: ({ node, ...props }: any) => (
+                                    <li className="my-0.5 pl-1" {...props} />
+                                  ),
+                                  p: ({ node, ...props }: any) => (
+                                    <p className="mb-2 last:mb-0" {...props} />
+                                  ),
+                                  strong: ({ node, ...props }: any) => (
+                                    <span
+                                      className="font-bold text-foreground"
+                                      {...props}
+                                    />
+                                  ),
+                                  a: ({ node, href, children, ...props }: any) => (
+                                    <a
+                                      href={href}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors break-all"
+                                      {...props}
+                                    >
+                                      {children}
+                                    </a>
+                                  ),
+                                }}
+                              >
+                                {message.content}
+                              </ReactMarkdown>
+                            </div>
+                          )}
+                        </ChatBubbleMessage>
                         <div
                           className={cn(
-                            "prose text-sm break-words leading-normal max-w-none",
-                            "prose-p:m-0 prose-ul:m-0 prose-ol:m-0 prose-li:m-0",
+                            "flex items-center gap-1.5 px-1 select-none",
+                            message.role === "user" ? "flex-row" : "flex-row"
                           )}
                         >
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              ul: ({ node, ...props }: any) => (
-                                <ul className="list-disc pl-4 my-1" {...props} />
-                              ),
-                              ol: ({ node, ...props }: any) => (
-                                <ol
-                                  className="list-decimal pl-4 my-1"
-                                  {...props}
-                                />
-                              ),
-                              li: ({ node, ...props }: any) => (
-                                <li className="my-0.5 pl-1" {...props} />
-                              ),
-                              p: ({ node, ...props }: any) => (
-                                <p className="mb-2 last:mb-0" {...props} />
-                              ),
-                              strong: ({ node, ...props }: any) => (
-                                <span
-                                  className="font-bold text-foreground"
-                                  {...props}
-                                />
-                              ),
-                              a: ({ node, href, children, ...props }: any) => (
-                                <a
-                                  href={href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors break-all"
-                                  {...props}
-                                >
-                                  {children}
-                                </a>
-                              ),
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
-                      )}
-                    </ChatBubbleMessage>
-                    <div
-                      className={cn(
-                        "flex items-center gap-1.5 px-1 select-none",
-                        message.role === "user" ? "flex-row" : "flex-row"
-                      )}
-                    >
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                        {message.createdAt
-                          ? new Date(message.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : new Date().toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                      </span>
-                      {message.role === "user" ? (
-                        <CheckCheck className="h-3 w-3 text-muted-foreground" />
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground hover:text-foreground/80 transition-colors"
-                          onClick={() => {
-                            navigator.clipboard.writeText(message.content);
-                            setCopiedMessageId(message.id);
-                            setTimeout(() => setCopiedMessageId(null), 2000);
-                          }}
-                        >
-                          {copiedMessageId === message.id ? (
-                            <Check className="h-3 w-3 text-green-500" />
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {message.createdAt
+                              ? new Date(message.createdAt).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : new Date().toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                          </span>
+                          {message.role === "user" ? (
+                            <CheckCheck className="h-3 w-3 text-muted-foreground" />
                           ) : (
-                            <Copy className="h-3 w-3" />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground hover:text-foreground/80 transition-colors"
+                              onClick={() => {
+                                navigator.clipboard.writeText(message.content);
+                                setCopiedMessageId(message.id);
+                                setTimeout(() => setCopiedMessageId(null), 2000);
+                              }}
+                            >
+                              {copiedMessageId === message.id ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                              <span className="sr-only">Copy</span>
+                            </Button>
                           )}
-                          <span className="sr-only">Copy</span>
-                        </Button>
-                      )}
-                    </div>
+                        </div>
+                      </div>
+                    </ChatBubble>
                   </div>
-                </ChatBubble>
-              ))}
+                );
+              })}
 
               {isLoading && (
                 <ChatBubble variant="received">
