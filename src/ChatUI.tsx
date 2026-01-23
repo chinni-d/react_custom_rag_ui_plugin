@@ -45,27 +45,7 @@ export interface ChatUIProps {
   theme?: "light" | "dark";
 }
 
-function getMessageDateLabel(date: Date) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  
-  if (target.getTime() === today.getTime()) {
-    return "Today";
-  }
-  
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (target.getTime() === yesterday.getTime()) {
-    return "Yesterday";
-  }
-  
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+
 
 export function ChatUI({
   endpoint,
@@ -394,24 +374,12 @@ export function ChatUI({
             </div>
           ) : (
             <ChatMessageList>
-              {messages.map((message, index) => {
-                const messageDate = new Date(message.createdAt || Date.now());
-                const prevMessageDate = index > 0 && messages[index - 1].createdAt 
-                  ? new Date(messages[index - 1].createdAt!) 
-                  : null;
-                const showDateSeparator = !prevMessageDate || messageDate.toDateString() !== prevMessageDate.toDateString();
+              {messages.map((message) => {
+
 
                 return (
                   <div key={message.id} className="w-full flex flex-col">
-                    {showDateSeparator && (
-                      <div className="flex items-center gap-4 my-4 px-4">
-                        <div className="h-[1px] flex-1 bg-border/30"></div>
-                        <span className="text-xs text-muted-foreground/50 font-medium select-none">
-                          {getMessageDateLabel(messageDate)}
-                        </span>
-                        <div className="h-[1px] flex-1 bg-border/30"></div>
-                      </div>
-                    )}
+
                     <ChatBubble
                       variant={message.role === "user" ? "sent" : "received"}
                     >
