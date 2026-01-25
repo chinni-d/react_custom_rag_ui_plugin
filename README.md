@@ -2,70 +2,114 @@
 
 A modern, highly customizable, and responsive Chat UI component for React applications. This plugin is designed to help you get started with an AI Agent Chatbot in minutes.
 
+**Now with support for vanilla HTML websites!**
+
 ## 🚀 Features
 
-- **Easy Integration**: Drop-in component for any React project.
+- **Easy Integration**: Drop-in component for React or plain HTML.
 - **Real-time Streaming**: Built-in support for streaming AI responses.
 - **Markdown Support**: Renders Markdown content with syntax highlighting.
 - **Responsive Design**: Works seamlessly on desktop and mobile configurations.
-- **Customizable**: extensive props to match your brand's look and feel.
+- **Customizable**: Extensive options to match your brand's look and feel.
 - **Interactive**: Notifications, sound effects, and smooth animations.
 
-## 📦 Installation
+---
 
-Install the package via npm:
+## 📦 Installation & Usage
 
+You can use this package in a **React** application or directly in an **HTML** website.
+
+### Option 1: React Application
+
+#### 1. Install via npm
 ```bash
 npm install @dmanikanta17/chat-ui
 ```
 
-## 🛠️ Usage
-
-### 1. Import necessary files
-
-In your React component (e.g., `App.tsx` or `layout.tsx`), import the `ChatUI` component and the necessary CSS styles.
-
+#### 2. Import styles
+In your root layout or component (e.g., `App.tsx`, `layout.tsx`):
 ```tsx
-import { ChatUI } from "@dmanikanta17/chat-ui";
 import "@dmanikanta17/chat-ui/styles.css";
 ```
 
-### 2. Add the Component
-
-Add the `<ChatUI />` component to your application tree. The only required prop is `endpoint`, which points to your backend API.
+#### 3. Add the Component
+Import and use the `ChatUI` component. The only required prop is `endpoint`.
 
 ```tsx
- "use client";
- import {ChatUI} from "@dmanikanta17/chat-ui"
- import "@dmanikanta17/chat-ui/styles.css"
+"use client";
+import { ChatUI } from "@dmanikanta17/chat-ui";
 
- export function Rag(){
-   return (
-     <ChatUI endpoint="https://your-api-domain.com/api/chat" />
-   )
- }
+export function AIWidget() {
+  return (
+    <ChatUI 
+      endpoint="https://your-api-domain.com/api/chat"
+      title="Support Assistant"
+    />
+  );
+}
 ```
 
-## ⚙️ Customization
+---
 
-The `ChatUI` component provides various props to customize the appearance and behavior of the chatbot.
+### Option 2: HTML Website
 
-### Available Props
+You can adds this chat widget to any static HTML website using our CDN.
 
-| Prop | Type | Required | Default | Description |
-|------|------|:--------:|---------|-------------|
-| `endpoint` | `string` | ✅ | - | The backend API URL for sending chat requests. |
-| `logoSrc` | `string` | ❌ | `DEFAULT_LOGO` | URL for the chatbot avatar/logo image. |
-| `soundSrc` | `string` | ❌ | `DEFAULT_SOUND` | URL for the notification sound played when a message arrives. |
-| `title` | `string` | ❌ | `"AI Assistant"` | The title displayed in the chat header. |
-| `welcomeMessage` | `string` | ❌ | `"Welcome..."` | The initial greeting message shown in the notification bubble. |
-| `description` | `string` | ❌ | `"I'm here..."` | A short description text under the welcome message. |
-| `footerText` | `ReactNode` | ❌ | `Default Footer` | Custom text or JSX to display in the footer of the chat window. |
-| `inputPlaceholder` | `string` | ❌ | `"Message"` | Placeholder text for the input text area. |
-| `theme` | `"light" \| "dark"` | ❌ | `"light"` | The color theme of the chat UI. |
+**[Live Preview Here](https://dmanikanta-ai-plugin.vercel.app/)**
 
-### Example with customizations
+#### 1. Add CSS
+Add this line inside the `<head>` tag:
+```html
+<link rel="stylesheet" href="https://dmanikanta-ai-plugin.vercel.app/chat-ui-widget.css">
+```
 
+#### 2. Add Container
+Add an empty container where the widget should be mounted (usually at the end of `<body>`):
+```html
+<div id="chat-widget"></div>
+```
+
+#### 3. Add Script
+Add the script tag at the end of your `<body>`:
+```html
+<script src="https://dmanikanta-ai-plugin.vercel.app/chat-ui-widget.js"></script>
+```
+
+#### 4. Initialize
+Initialize the widget with your configuration:
+```html
+<script>
+  window.mountChatUI('chat-widget', {
+    endpoint: 'https://your-api-endpoint.com/chat',
+    title: 'Support Chat',
+    welcomeMessage: 'Hello! How can we help you today?',
+    description: 'We typically reply in a few minutes.',
+    logoSrc: 'https://cdn-icons-png.flaticon.com/512/6134/6134346.png',
+    theme: 'light', // or 'dark'
+    footerText: 'Powered by Custom RAG'
+  });
+</script>
+```
+
+---
+
+## ⚙️ Configuration
+
+These options work for both the **React Component props** and the **HTML Widget config object**.
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `endpoint` | `string` | **Required** | The backend API URL for chat requests. |
+| `title` | `string` | `"AI Assistant"` | Title displayed in the chat header. |
+| `welcomeMessage` | `string` | `"Welcome..."` | Initial greeting in the notification bubble. |
+| `description` | `string` | `"I'm here..."` | Subtitle text under the welcome message. |
+| `inputPlaceholder` | `string` | `"Message"` | Placeholder text for the input area. |
+| `logoSrc` | `string` | `Default Logo` | URL for the chatbot avatar. |
+| `soundSrc` | `string` | `Default Sound` | URL for the notification sound. |
+| `theme` | `"light" \| "dark"` | `"light"` | Color theme of the interface. |
+| `footerText` | `ReactNode` | `Default Footer` | Text to display in the footer. |
+
+### React Example with Full Customization
 ```tsx
 <ChatUI 
   endpoint="https://api.myapp.com/api/chat"
@@ -78,19 +122,22 @@ The `ChatUI` component provides various props to customize the appearance and be
 />
 ```
 
+---
 
 ## 🧠 Configure RAG Pipeline
 
 To make your chatbot intelligent and capable of answering questions based on your specific data (like your website content, personal pages, or documentation), you need to set up a RAG (Retrieval-Augmented Generation) pipeline.
 
-This **Chat UI** handles the frontend experience. For the backend and to integrate your own data sources:
+This **Chat UI** handles the frontend. For the backend:
 
 1.  **Visit**: [services.dmanikanta.me](https://services.dmanikanta.me)
-2.  **Select Integration**: Choose the type of integration you need (Website, Personal Portfolio, Documentation, etc.).
-3.  **Get Endpoint**: Once configured, you will receive a unique API endpoint.
-4.  **Connect**: Pass that endpoint to the `<ChatUI />` component as shown in the usage section.
+2.  **Select Integration**: Choose your data source (Website, Portfolio, Documentation, etc.).
+3.  **Get Endpoint**: Receive your unique API endpoint.
+4.  **Connect**: Pass that endpoint to the `ChatUI` component (or HTML widget).
 
-This service allows you to easily transform your static content into an interactive AI agent.
+This service transforms your static content into an interactive AI agent.
+
+---
 
 ## 🤝 Support
 
