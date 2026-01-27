@@ -3,7 +3,7 @@
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { 
   Send, Sparkles, User, RefreshCcw, X, Copy, CheckCheck, Check, 
-  Maximize2, Minimize2, Mic, MicOff, Square, ThumbsUp, ThumbsDown 
+  Maximize2, Minimize2, Mic, MicOff, Square, ThumbsUp, ThumbsDown, Volume2, VolumeX, Pause 
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
@@ -159,17 +159,58 @@ export function ChatUI({
   const [isMaximized, setIsMaximized] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  
+  // -- Feature: Text-to-Speech (TTS) --
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+
+  const speakMessage = (text: string, messageId: string) => {
+    if (!window.speechSynthesis) return;
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+    setSpeakingMessageId(null);
+
+    // If we are toggling off the same message
+    if (speakingMessageId === messageId) {
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    // Optional: Select a specific voice if needed
+    // const voices = window.speechSynthesis.getVoices();
+    // utterance.voice = voices[0]; 
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    setSpeakingMessageId(messageId);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Stop speaking when chat closes or component unmounts
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!isDismissed && !isChatOpen) {
         setShowNotification(true);
-        const audio = new Audio(soundSrc);
-        audio.play().catch((error) => {
-          if (error.name !== "NotAllowedError") {
-            console.error("Error playing notification sound:", error);
-          }
-        });
+        if (!isAudioMuted) {
+          const audio = new Audio(soundSrc);
+          audio.play().catch((error) => {
+            if (error.name !== "NotAllowedError") {
+              console.error("Error playing notification sound:", error);
+            }
+          });
+        }
       }
     }, 2000);
     return () => clearTimeout(timer);
@@ -286,10 +327,12 @@ export function ChatUI({
       }
 
       // Play notification sound
-      const audio = new Audio(soundSrc);
-      audio
-        .play()
-        .catch((e) => console.error("Error playing notification sound:", e));
+      if (!isAudioMuted) {
+        const audio = new Audio(soundSrc);
+        audio
+          .play()
+          .catch((e) => console.error("Error playing notification sound:", e));
+      }
     } catch (error: any) {
       // Ensure we turn off streaming if we hit an error
       if (currentBotMessageId) {
@@ -463,6 +506,22 @@ export function ChatUI({
             Online and ready to help
           </p>
           <div className="absolute top-3 left-3 flex items-center gap-1 sm:top-5 sm:right-5 sm:left-auto">
+            <Tooltip text={isAudioMuted ? "Unmute Audio" : "Mute Audio"}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden sm:flex h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                onClick={() => {
+                  if (!isAudioMuted) {
+                    window.speechSynthesis.cancel();
+                    setSpeakingMessageId(null);
+                  }
+                  setIsAudioMuted(!isAudioMuted);
+                }}
+              >
+                {isAudioMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </Button>
+            </Tooltip>
              <Tooltip text={isMaximized ? "Minimize" : "Maximize"}>
               <Button
                 variant="ghost"
@@ -636,6 +695,24 @@ export function ChatUI({
                               </Button>
 
                               <div className="flex items-center gap-1 border-l border-border/40 pl-1.5 ml-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className={cn(
+                                    "h-6 w-6 hover:bg-muted transition-colors rounded-md",
+                                    speakingMessageId === message.id 
+                                      ? "text-primary bg-muted" 
+                                      : "text-muted-foreground hover:text-foreground"
+                                  )}
+                                  onClick={() => speakMessage(message.content, message.id)}
+                                >
+                                  {speakingMessageId === message.id ? (
+                                    <Pause className="h-3 w-3 fill-current" />
+                                  ) : (
+                                    <Volume2 className="h-3 w-3" />
+                                  )}
+                                  <span className="sr-only">{speakingMessageId === message.id ? "Stop" : "Listen"}</span>
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
