@@ -515,7 +515,7 @@ export function ChatUI({
 
 
                 return (
-                  <div key={message.id} className="w-full flex flex-col">
+                  <div key={message.id} className="w-full flex flex-col group">
 
                     <ChatBubble
                       variant={message.role === "user" ? "sent" : "received"}
@@ -598,8 +598,7 @@ export function ChatUI({
                         </ChatBubbleMessage>
                         <div
                           className={cn(
-                            "items-center gap-1.5 px-1 select-none",
-                            message.role === "user" ? "flex-row" : "flex-row",
+                            "items-center gap-1.5 px-1 select-none flex flex-row",
                             message.isStreaming ? "hidden" : "flex"
                           )}
                         >
@@ -617,34 +616,31 @@ export function ChatUI({
                           {message.role === "user" ? (
                             <CheckCheck className="h-3 w-3 text-muted-foreground" />
                           ) : (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground hover:text-foreground/80 transition-colors"
-                              onClick={() => {
-                                navigator.clipboard.writeText(message.content);
-                                setCopiedMessageId(message.id);
-                                setTimeout(() => setCopiedMessageId(null), 2000);
-                              }}
-                            >
-                              {copiedMessageId === message.id ? (
-                                <Check className="h-3 w-3 text-green-500" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                              <span className="sr-only">Copy</span>
-                            </Button>
-                          )}
-                          
-                          {/* Feedback & Regenerate Actions for Assistant */}
-                          {message.role === "assistant" && (
-                            <>
+                            <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors rounded-md"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(message.content);
+                                  setCopiedMessageId(message.id);
+                                  setTimeout(() => setCopiedMessageId(null), 2000);
+                                }}
+                              >
+                                {copiedMessageId === message.id ? (
+                                  <Check className="h-3 w-3 text-green-500" />
+                                ) : (
+                                  <Copy className="h-3 w-3" />
+                                )}
+                                <span className="sr-only">Copy</span>
+                              </Button>
+
                               <div className="flex items-center gap-1 border-l border-border/40 pl-1.5 ml-1">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className={cn(
-                                    "h-4 w-4 p-0 hover:bg-transparent transition-colors",
+                                    "h-6 w-6 hover:bg-muted transition-colors rounded-md",
                                     message.feedback === "up" 
                                       ? "text-foreground" 
                                       : "text-muted-foreground hover:text-foreground"
@@ -658,7 +654,7 @@ export function ChatUI({
                                   variant="ghost"
                                   size="icon"
                                   className={cn(
-                                    "h-4 w-4 p-0 hover:bg-transparent transition-colors",
+                                    "h-6 w-6 hover:bg-muted transition-colors rounded-md",
                                     message.feedback === "down" 
                                       ? "text-foreground" 
                                       : "text-muted-foreground hover:text-foreground"
@@ -669,9 +665,7 @@ export function ChatUI({
                                   <span className="sr-only">Not helpful</span>
                                 </Button>
                               </div>
-                              
-                              {/* Regenerate option removed */}
-                            </>
+                            </div>
                           )}
                         </div>
                       </div>
