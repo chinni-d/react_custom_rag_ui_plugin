@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect, useRef } from "react";
 import { 
   Send, Sparkles, User, RefreshCcw, X, Copy, CheckCheck, Check, 
   Maximize2, Minimize2, Mic, MicOff, Square, ThumbsUp, ThumbsDown, Volume2, VolumeX, Pause,
-  Plus, MessageSquare, Trash2, MoreVertical, History, ArrowLeft
+  Plus, MessageSquare, Trash2, MoreVertical, ArrowLeft
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
@@ -673,7 +673,7 @@ export function ChatUI({
                    {showHistory ? (
                      <ArrowLeft className="h-4 w-4" />
                    ) : (
-                     <History className="h-4 w-4" />
+                     <Plus className="h-4 w-4" />
                    )}
                  </div>
                  <span className="font-medium whitespace-nowrap">

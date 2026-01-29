@@ -17,6 +17,81 @@ A modern, highly customizable, and responsive Chat UI component for React applic
 
 ---
 
+## 🌐 Supported Frameworks & Platforms
+
+@dmanikanta17/chat-ui works in any environment that can install npm packages or load JavaScript & CSS files.
+
+### 1. Plain HTML (No Framework)
+**Integration:** `<script>` + `<link>`
+
+| Platform | Platform |
+| :--- | :--- |
+| • Static HTML Websites | • Webflow |
+| • Vanilla JavaScript | • Wix (Custom Code) |
+| • WordPress | • Joomla |
+| • Shopify | • Drupal |
+
+✅ **Supported**
+
+### 2. JavaScript UI Frameworks (npm-based)
+**Install:** `npm install @dmanikanta17/chat-ui`
+
+| Modern / Popular | Lightweight / Legacy |
+| :--- | :--- |
+| • React | • Lit |
+| • Angular | • Alpine.js |
+| • Vue.js | • Ember.js |
+| • Svelte | • Backbone.js |
+| • SolidJS | • Knockout.js |
+| • Preact | • Mithril.js |
+
+✅ **Supported**
+
+### 3. Meta / SSR & Static Frameworks
+
+| Framework | Framework |
+| :--- | :--- |
+| • Next.js | • Gatsby |
+| • Nuxt.js | • Astro |
+| • SvelteKit | • Qwik |
+| • Remix | • Meteor |
+
+✅ **Supported**
+
+### 4. Mobile (JavaScript-based)
+**Note:** Works best via WebView or embedded browser support.
+
+| Platform | Platform |
+| :--- | :--- |
+| • React Native | • NativeScript |
+| • Expo | • Cordova |
+| • Ionic | • Capacitor |
+
+✅ **Supported**
+
+### 5. Desktop (JavaScript-based)
+
+| Platform | Platform |
+| :--- | :--- |
+| • Electron | • NW.js |
+| • Tauri | |
+
+✅ **Supported**
+
+### Support Summary
+
+| Category | Support |
+| :--- | :--- |
+| Plain HTML | ✅ Supported |
+| npm-based frameworks | ✅ Supported |
+| SSR / Meta frameworks | ✅ Supported |
+| Mobile (JS-based) | ✅ Supported |
+| Desktop (JS-based) | ✅ Supported |
+
+**Total Supported Environments: 30+ platforms**
+
+---
+
 ## 📦 Installation & Usage
 
 You can use this package in a **React** application or directly in an **HTML** website.
